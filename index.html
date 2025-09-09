@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Endpoint Pricing Calculator — Graduated Tiers + Support + Partner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{--bg:#0b0f14;--card:#0f1722;--ink:#e5e7eb;--muted:#9ca3af;--accent:#3b82f6;--line:#243041;--good:#22c55e}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--ink);font:16px system-ui,-apple-system,"Segoe UI",Roboto,Inter,Arial,sans-serif}
+    .wrap{max-width:1040px;margin:0 auto;padding:24px}
+    .card{background:var(--card);border-radius:18px;padding:22px 22px 18px;box-shadow:0 4px 24px rgba(0,0,0,.25);margin-bottom:18px;border:1px solid var(--line)}
+    h1{margin:0 0 14px;font-size:22px}
+    h2{margin:6px 0 12px;font-size:18px}
+    label{font-weight:600;display:block;margin:0 0 6px}
+    .controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+    input[type=number],select{width:100%;appearance:none;border-radius:12px;background:#111a27;border:1px solid var(--line);color:var(--ink);padding:12px}
+    input[type=checkbox]{width:18px;height:18px}
+    .checkbox{display:flex;gap:10px;align-items:center;margin-top:6px}
+    .help{color:var(--muted);font-size:12px}
+    .tabs{display:flex;gap:8px;margin:4px 0 10px}
+    .tab{flex:1;text-align:center;padding:12px;border-radius:12px;background:#0e1622;border:1px solid var(--line);cursor:pointer;user-select:none}
+    .tab[aria-selected=true]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+    .panel{display:none}
+    .panel[aria-hidden=false]{display:block}
+    .grid{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:10px}
+    .grid div{padding:10px 6px;border-bottom:1px dashed var(--line)}
+    .total{font-weight:800;font-size:18px}
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:#0c1320;color:var(--muted);font-size:12px;margin-left:8px}
+    .money{font-variant-numeric:tabular-nums lining-nums}
+    .row-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    button{background:#0f1a2b;border:1px solid var(--line);color:#fff;padding:10px 12px;border-radius:12px;cursor:pointer}
+    button:hover{border-color:var(--accent)}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left}
+    th{background:#0e1622}
+    .muted{color:var(--muted)}
+    footer{margin-top:20px;text-align:center;color:#5b687a;font-size:12px}
+    noscript{display:block;background:#dc2626;color:#fff;padding:12px;font-weight:700;text-align:center}
+    @media (max-width:880px){.controls{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<noscript>This calculator needs JavaScript enabled.</noscript>
+<div class="wrap" role="application" aria-label="Endpoint Pricing Calculator">
+  <div class="card" aria-labelledby="heading">
+    <h1 id="heading">Endpoint Pricing Calculator</h1>
+    <div class="controls" role="group" aria-label="Inputs">
+      <div>
+        <label for="endpoints">Endpoint count</label>
+        <input id="endpoints" name="endpoints" type="number" min="1" step="1" value="1000" inputmode="numeric" />
+        <div class="help">Graduated (marginal) pricing by band</div>
+      </div>
+      <div>
+        <label for="product">Product</label>
+        <select id="product" name="product">
+          <option value="rct">Right Click Tools (Core)</option>
+          <option value="patch">Patching</option>
+          <option value="insights">Insights</option>
+          <option value="priv">Privilege Manager</option>
+          <option value="aw_cloud">Application Workspace — Direct Cloud</option>
+          <option value="aw_onprem">Application Workspace — Direct On-Prem</option>
+        </select>
+        <div class="help">Different base, fees & minimums per product</div>
+      </div>
+      <div>
+        <label class="checkbox" for="premiumSupport" style="margin-top:26px">
+          <input id="premiumSupport" type="checkbox" />
+          <span>Add Premium Support <span class="pill">+20% (min $6,000)</span></span>
+        </label>
+        <div class="help">Applied on subtotal after any platform fee waiver</div>
+      </div>
+    </div>
+    <div class="row-actions" role="group" aria-label="Actions">
+      <button id="copyBtn" type="button" aria-label="Copy summary">Copy Summary</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="tabs" role="tablist" aria-label="Results Views">
+      <div class="tab" role="tab" id="tab-cust" aria-controls="panel-cust" aria-selected="true" tabindex="0">Customer Pricing</div>
+      <div class="tab" role="tab" id="tab-partner" aria-controls="panel-partner" aria-selected="false" tabindex="-1">Partner Pricing</div>
+      <div class="tab" role="tab" id="tab-sla" aria-controls="panel-sla" aria-selected="false" tabindex="-1">Support SLA</div>
+    </div>
+
+    <!-- Customer Pricing Panel -->
+    <div id="panel-cust" class="panel" role="tabpanel" aria-labelledby="tab-cust" aria-hidden="false">
+      <h2>Quote</h2>
+      <div class="grid">
+        <div>Product</div><div id="outProduct">—</div>
+        <div>Base Total ARR <span class="pill">Graduated tiers</span></div><div id="baseArr" class="money">—</div>
+        <div>Platform Fee</div><div id="platform" class="money">—</div>
+        <div>Premium Support (20% min $6k)</div><div id="support" class="money">—</div>
+        <div class="total">Total ARR</div><div id="grand" class="total money">—</div>
+      </div>
+      <details style="margin-top:12px">
+        <summary class="muted">Show tier calculation</summary>
+        <table id="tierTable" aria-label="Tier breakdown">
+          <thead><tr><th>Band</th><th>Units</th><th>Rate</th><th>Extended</th></tr></thead>
+          <tbody></tbody>
+          <tfoot><tr><th colspan="3" style="text-align:right">Subtotal (before platform/support)</th><th id="tierSub" class="money">—</th></tr></tfoot>
+        </table>
+      </details>
+      <div id="notes" class="help" style="margin-top:8px"></div>
+    </div>
+
+    <!-- Partner Pricing Panel -->
+    <div id="panel-partner" class="panel" role="tabpanel" aria-labelledby="tab-partner" aria-hidden="true">
+      <h2>Partner Margin</h2>
+      <table aria-label="Partner margin table">
+        <thead>
+          <tr><th>Type</th><th>MSRP (List)</th><th>Margin %</th><th>Margin $</th><th>Partner Price</th><th>$ / Endpoint</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Net New</td>
+            <td id="msrpNew">—</td>
+            <td>30%</td>
+            <td id="marginNew">—</td>
+            <td id="partnerNew">—</td>
+            <td id="partnerNewPPU">—</td>
+          </tr>
+          <tr>
+            <td>Renewal</td>
+            <td id="msrpRen">—</td>
+            <td>15%</td>
+            <td id="marginRen">—</td>
+            <td id="partnerRen">—</td>
+            <td id="partnerRenPPU">—</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="help" style="margin-top:6px">Partner price is MSRP minus margin. MSRP includes platform fee (if not waived) and premium support (if selected).</div>
+    </div>
+
+    <!-- SLA Panel -->
+    <div id="panel-sla" class="panel" role="tabpanel" aria-labelledby="tab-sla" aria-hidden="true">
+      <h2>Support SLA</h2>
+      <table aria-label="Support SLA Matrix">
+        <thead><tr><th>Support Level</th><th>Basic</th><th>Premium</th></tr></thead>
+        <tbody>
+          <tr><td>Urgent Severity</td><td>First response: <strong>1 Business Day</strong></td><td>First & update: <strong>2 Business Hours</strong></td></tr>
+          <tr><td>Normal Severity</td><td>First response: <strong>2 Business Days</strong></td><td>First & update: <strong>4 Business Hours</strong></td></tr>
+          <tr><td>Low Severity</td><td>First response: <strong>3 Business Days</strong></td><td>First & update: <strong>8 Business Hours</strong></td></tr>
+          <tr><td>Availability</td><td colspan="2">8am – 5pm CT/CET</td></tr>
+          <tr><td>Support Hours</td><td colspan="2">Unlimited</td></tr>
+          <tr><td>Dedicated CSM</td><td>✔</td><td>✔</td></tr>
+          <tr><td>Support Call Scheduling</td><td>Based on availability</td><td>Urgent within 2 business days; Normal within 4; Low based on availability</td></tr>
+          <tr><td>Environment Audit</td><td>—</td><td>1× / year</td></tr>
+          <tr><td>Configuration Audit</td><td>—</td><td>1× / year</td></tr>
+          <tr><td>Upgrade Assistance</td><td>—</td><td>2× / year</td></tr>
+          <tr><td>User Group Membership</td><td>Based on availability</td><td>Priority recruitment</td></tr>
+          <tr><td>Pricing</td><td>Included with Enterprise License</td><td>+20% of total ARR (minimum $6,000)</td></tr>
+        </tbody>
+      </table>
+      <div class="help" style="margin-top:8px">Note: Response-time commitments do not guarantee time to resolution.</div>
+    </div>
+  </div>
+
+  <footer>Build stamp: 2025-09-09 • Standalone (iframe-friendly)</footer>
+</div>
+<script>
+  /* --- Tier data (base $5 tiers) --- */
+  const TIERS_BASE5=[
+    {max:1000,rate:5.00},{max:2000,rate:4.50},{max:3000,rate:4.25},{max:4000,rate:4.00},{max:5000,rate:3.75},
+    {max:6000,rate:3.50},{max:7000,rate:3.25},{max:8000,rate:3.00},{max:9000,rate:2.75},{max:10000,rate:2.50},
+    {max:15000,rate:2.25},{max:20000,rate:2.00},{max:25000,rate:1.75},{max:30000,rate:1.50},{max:40000,rate:1.25},
+    {max:50000,rate:1.00},{max:60000,rate:0.75},{max:70000,rate:0.50},{max:80000,rate:0.40},{max:90000,rate:0.35},
+    {max:100000,rate:0.30},{max:120000,rate:0.25},{max:140000,rate:0.20},{max:160000,rate:0.15},{max:180000,rate:0.10},
+    {max:200000,rate:0.05},{max:Infinity,rate:0.10}
+  ];
+
+  const PRODUCTS={
+    rct:{name:"Right Click Tools (Core)",baseFactor:1,platformFee:7500,minTotal:12500},
+    patch:{name:"Patching",baseFactor:1,platformFee:7500,minTotal:12500},
+    insights:{name:"Insights",baseFactor:1,platformFee:0,minTotal:5000},
+    priv:{name:"Privilege Manager",baseFactor:1,platformFee:0,minTotal:5000},
+    aw_cloud:{name:"Application Workspace — Direct Cloud",baseFactor:11/5,platformFee:15000,minTotal:26000},
+    aw_onprem:{name:"Application Workspace — Direct On-Prem",baseFactor:10/5,platformFee:15000,minTotal:25000}
+  };
+
+  const $=sel=>document.querySelector(sel);
+  function money(n){return (!isFinite(n))?"—":n.toLocaleString(undefined,{style:'currency',currency:'USD'})}
+  function clampFloor(r){return Math.max(r,0.10)}
+  function tiersFor(key){const f=(PRODUCTS[key]||PRODUCTS.rct).baseFactor;return TIERS_BASE5.map(t=>({max:t.max,rate:clampFloor(+((t.rate*f).toFixed(4)))}));}
+  function graduatedSubtotal(units,tiers){let rem=Math.max(0,Math.floor(units)),from=0,sum=0,lines=[];for(const b of tiers){if(rem<=0)break;const c=Math.min(rem,b.max-from);const ext=c*b.rate;sum+=ext;lines.push({range:`${from+1}–${from+c}`,units:c,rate:b.rate,extended:ext});rem-=c;from=b.max;}return{subtotal:sum,lines};}
+  function premiumSupport(add,basePlusPlat){if(!add)return 0;return Math.max(0.20*basePlusPlat,6000)}
+
+  function summaryFields(m){return[
+    ["Product",m.productName],
+    ["Endpoints",m.endpoints.toLocaleString()],
+    ["Base Total ARR (graduated)",money(m.baseARR)],
+    ["Platform Fee",m.platformWaived?"— (waived)":money(m.platformFeeApplied)],
+    ["Premium Support",m.addSupport?money(m.supportCost):"—"],
+    ["Total ARR",money(m.totalARR)],
+    ["Partner (New)",money(m.partnerNewPrice)],
+    ["Partner (Renewal)",money(m.partnerRenPrice)]
+  ];}
+
+  function copySummary(m){const txt=summaryFields(m).map(([k,v])=>`${k}: ${v}`).join('\n');navigator.clipboard.writeText(txt).then(()=>alert('Summary copied.'));}
+
+  function selectTab(panelId){document.querySelectorAll('[role="tab"]').forEach(t=>{const pid=t.getAttribute('aria-controls');const on=(pid===panelId);t.setAttribute('aria-selected',on?'true':'false');t.tabIndex=on?0:-1;});document.querySelectorAll('[role="tabpanel"]').forEach(p=>{p.setAttribute('aria-hidden',p.id===panelId?'false':'true');});}
+
+  function calculate(){
+    const endpoints=Math.max(0,Math.floor(+$('#endpoints').value||0));
+    const key=$('#product').value;
+    const addSup=$('#premiumSupport').checked;
+    const meta=PRODUCTS[key];
+
+    const tiers=tiersFor(key);
+    const {subtotal:baseARR,lines}=graduatedSubtotal(endpoints,tiers);
+
+    // Fee waiver: base ARR >= $30,000
+    const platform=(baseARR>=30000)?0:meta.platformFee;
+
+    // Apply product minimum to (base + platform)
+    const basePlusPlatform=Math.max(baseARR + platform, meta.minTotal);
+
+    // Premium support (+20%, $6k min) calculated on basePlusPlatform
+    const support=premiumSupport(addSup, basePlusPlatform);
+
+    const total=basePlusPlatform + support;
+
+    // Render Customer view
+    $('#outProduct').textContent=meta.name;
+    $('#baseArr').textContent=money(baseARR);
+    $('#platform').textContent=(platform===0? '— (waived)' : money(platform));
+    $('#support').textContent=addSup?money(support):'—';
+    $('#grand').textContent=money(total);
+
+    const tbody=$('#tierTable tbody');
+    tbody.innerHTML='';
+    lines.forEach(r=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${r.range}</td><td>${r.units.toLocaleString()}</td><td class="money">${money(r.rate)}</td><td class="money">${money(r.extended)}</td>`;
+      tbody.appendChild(tr);
+    });
+    $('#tierSub').textContent=money(baseARR);
+    const waiver=(platform===0)?"Platform fee waived automatically (base ARR ≥ $30,000).":"Platform fee not waived (base ARR < $30,000).";
+    const minNote=(basePlusPlatform===meta.minTotal)?` Minimum base+platform minimum applied: ${money(meta.minTotal)}.`:'';
+    $('#notes').textContent=waiver+minNote;
+
+    // Partner math (based on MSRP = total)
+    const msrp=total;
+    const marginNew=msrp*0.30, marginRen=msrp*0.15;
+    const partnerNew=msrp - marginNew;
+    const partnerRen=msrp - marginRen;
+
+    $('#msrpNew').textContent=money(msrp);
+    $('#marginNew').textContent=money(marginNew);
+    $('#partnerNew').textContent=money(partnerNew);
+    $('#partnerNewPPU').textContent=endpoints?money(partnerNew/endpoints):'—';
+
+    $('#msrpRen').textContent=money(msrp);
+    $('#marginRen').textContent=money(marginRen);
+    $('#partnerRen').textContent=money(partnerRen);
+    $('#partnerRenPPU').textContent=endpoints?money(partnerRen/endpoints):'—';
+
+    const model={productName:meta.name,endpoints,baseARR,platformFeeApplied:platform,platformWaived:platform===0,addSupport:addSup,supportCost:support,totalARR:total,partnerNewPrice:partnerNew,partnerRenPrice:partnerRen};
+    $('#copyBtn').onclick=()=>copySummary(model);
+  }
+
+  document.getElementById('tab-cust').addEventListener('click',()=>selectTab('panel-cust'));
+  document.getElementById('tab-partner').addEventListener('click',()=>selectTab('panel-partner'));
+  document.getElementById('tab-sla').addEventListener('click',()=>selectTab('panel-sla'));
+  ['endpoints','product','premiumSupport'].forEach(id=>{const el=document.getElementById(id);el.addEventListener('input',calculate,{passive:true});el.addEventListener('change',calculate,{passive:true});});
+  document.addEventListener('DOMContentLoaded',()=>{selectTab('panel-cust');calculate();});
+</script>
+</body>
+</html>
