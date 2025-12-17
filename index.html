@@ -4,15 +4,14 @@
   <meta charset="utf-8">
   <title>Endpoint Pricing Calculator — Multi-Product + Partner Quote</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="dark light">
+  <meta name="color-scheme" content="light dark">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="min-h-screen bg-[#0b1020] text-slate-100 antialiased">
+<body class="min-h-screen bg-[#f9fafb] text-[#111827] antialiased">
   <div id="app" class="min-h-screen"></div>
-
   <script>
     /* =======================
        STATE
@@ -25,7 +24,6 @@
       copied: false,
       showBreakdown: false
     };
-
     /* =======================
        DATA
     ======================= */
@@ -38,14 +36,13 @@
       { max: 200000, rate: 0.05 }, { max: Infinity, rate: 0.10 }
     ];
     const PRODUCTS = {
-      rct:       { name: 'Right Click Tools (Core)', baseFactor: 1,    platformFee: 7500, minTotal: 12500 },
-      patch:     { name: 'Patching',                 baseFactor: 1,    platformFee: 7500, minTotal: 12500 },
-      insights:  { name: 'Insights',                 baseFactor: 1,    platformFee: 0,    minTotal: 5000  },
-      priv:      { name: 'Privilege Manager',        baseFactor: 1,    platformFee: 0,    minTotal: 5000  },
-      aw_cloud:  { name: 'Application Workspace — Direct Cloud',  baseFactor: 11/5, platformFee: 15000, minTotal: 26000 },
+      rct: { name: 'Right Click Tools (Core)', baseFactor: 1, platformFee: 7500, minTotal: 12500 },
+      patch: { name: 'Patching', baseFactor: 1, platformFee: 7500, minTotal: 12500 },
+      insights: { name: 'Insights', baseFactor: 1, platformFee: 0, minTotal: 5000 },
+      priv: { name: 'Privilege Manager', baseFactor: 1, platformFee: 0, minTotal: 5000 },
+      aw_cloud: { name: 'Application Workspace — Direct Cloud', baseFactor: 11/5, platformFee: 15000, minTotal: 26000 },
       aw_onprem: { name: 'Application Workspace — Direct On-Prem', baseFactor: 10/5, platformFee: 15000, minTotal: 25000 }
     };
-
     /* =======================
        UTILS
     ======================= */
@@ -74,7 +71,6 @@
     function cryptoRandomId(){
       try { return crypto.randomUUID(); } catch { return 'id-'+Math.random().toString(36).slice(2); }
     }
-
     /* =======================
        MODEL
     ======================= */
@@ -107,7 +103,6 @@
         lines
       };
     }
-
     function model(){
       const items = STATE.items.map(computeItem);
       const totals = items.reduce((a,it)=>({
@@ -123,7 +118,6 @@
       }), { endpoints:0, baseARR:0, platform:0, support:0, msrp:0, partnerNew:0, partnerRen:0, marginNew$:0, marginRen$:0 });
       return { items, totals };
     }
-
     /* =======================
        RENDER
     ======================= */
@@ -131,37 +125,34 @@
       const m = model();
       const root = document.getElementById('app');
       root.innerHTML = `
-        <header class="relative overflow-hidden">
-          <div aria-hidden="true" class="pointer-events-none absolute inset-0">
-            <div class="absolute -top-40 -left-24 h-[420px] w-[420px] rounded-full blur-[110px] bg-gradient-to-br from-sky-500/25 via-indigo-500/20 to-fuchsia-500/30"></div>
-            <div class="absolute -top-10 right-0 h-[280px] w-[280px] rounded-full blur-[110px] bg-gradient-to-br from-fuchsia-400/25 via-purple-500/20 to-sky-500/25"></div>
+        <header class="pt-8 pb-6 px-6 lg:px-12">
+          <div class="mx-auto max-w-6xl flex items-center justify-between">
+            <h1 class="text-3xl font-semibold leading-tight">Recast Pricing Calculator</h1>
+            <button type="button" class="inline-flex items-center gap-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-full px-6 py-2 shadow-sm transition-shadow duration-300" data-action="copy">
+              <i data-lucide="clipboard" class="w-4 h-4"></i><span>${STATE.copied ? 'Copied!' : 'Copy Email'}</span>
+            </button>
           </div>
-          <div class="relative mx-auto max-w-6xl px-4 pt-8 pb-6">
-            <div class="flex items-center justify-between">
-              <h1 class="text-2xl sm:text-3xl font-extrabold">Recast Pricing Calculator</h1>
-              <button type="button" class="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-4 py-2 text-sm font-semibold text-slate-900 hover:brightness-95" data-action="copy">
-                <i data-lucide="clipboard" class="w-4 h-4"></i><span>${STATE.copied ? 'Copied!' : 'Copy Email'}</span>
-              </button>
-            </div>
-            <p class="mt-2 max-w-2xl text-slate-300">Estimate only. Not a formal quote.</p>
+          <p class="mx-auto max-w-6xl mt-2 max-w-2xl text-base text-gray-700 leading-relaxed">Estimate only. Not a formal quote.</p>
+          <div class="mx-auto max-w-6xl mt-6 hidden sm:flex w-full rounded-full bg-gray-100 p-1 gap-1">
+            ${tabBtn('customer','Customer Pricing')}
+            ${tabBtn('partner','Partner Pricing')}
+            ${tabBtn('sla','Support SLA')}
           </div>
-          <div class="relative mx-auto max-w-6xl px-4">
-            <div role="tablist" aria-label="Views" class="flex w-full flex-wrap gap-2 rounded-full bg-[#0b152f] p-1 ring-1 ring-white/10">
-              ${tabBtn('customer','Customer Pricing')}
-              ${tabBtn('partner','Partner Pricing')}
-              ${tabBtn('sla','Support SLA')}
-            </div>
+          <div class="mx-auto max-w-6xl mt-6 sm:hidden">
+            <select class="w-full rounded-full border border-gray-300 bg-white px-4 py-2 text-sm" data-action="switch-mobile">
+              <option value="customer" ${STATE.activeTab==='customer'?'selected':''}>Customer Pricing</option>
+              <option value="partner" ${STATE.activeTab==='partner'?'selected':''}>Partner Pricing</option>
+              <option value="sla" ${STATE.activeTab==='sla'?'selected':''}>Support SLA</option>
+            </select>
           </div>
         </header>
-
-        <main class="mx-auto max-w-6xl px-4 pb-16">
-          <section class="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-3">
+        <main class="mx-auto max-w-6xl px-6 lg:px-12 pb-16">
+          <section class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             ${inputsCard(m)}
             ${kpiCard('Total ARR (MSRP)', money(m.totals.msrp), 'calculator')}
             ${kpiCard('Base ARR', money(m.totals.baseARR), 'badge-dollar-sign')}
           </section>
-
-          <section class="mt-4">
+          <section class="mt-6">
             ${STATE.activeTab==='customer' ? renderCustomer(m) : ''}
             ${STATE.activeTab==='partner' ? renderPartner(m) : ''}
             ${STATE.activeTab==='sla' ? renderSLA() : ''}
@@ -172,63 +163,60 @@
       attachEvents();
       if (STATE.showBreakdown) updateBreakdownTable();
     }
-
     /* ---------- Sub-renders ---------- */
     function tabBtn(id,label){
       const active = STATE.activeTab===id;
       return `
-        <button type="button" class="${cx('inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm transition', active ? 'bg-yellow-400 text-slate-900' : 'text-slate-200 hover:bg-white/5')}"
+        <button type="button" class="${cx('flex-1 inline-flex justify-center items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-300', active ? 'bg-[#2563eb] text-white shadow-sm' : 'text-gray-700 hover:bg-gray-200')}"
           data-action="switch" data-tab="${id}" aria-controls="panel-${id}" aria-selected="${active}">
           <i data-lucide="${id==='customer'?'calculator':id==='partner'?'users':'life-buoy'}" class="w-4 h-4"></i><span>${label}</span>
         </button>
       `;
     }
-
     function inputsCard(m){
       return `
-        <div class="rounded-2xl border border-white/10 bg-[#0c142b] p-4 lg:col-span-2" role="region" aria-label="Inputs">
+        <div class="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition-shadow duration-300 lg:col-span-2" role="region" aria-label="Inputs">
           <div class="flex items-center justify-between">
-            <h2 class="text-base font-semibold">Line Items</h2>
-            <button class="inline-flex items-center gap-2 text-sm rounded-full border border-white/15 bg-white/10 px-3 py-1.5 hover:bg-white/20" data-action="add-item">
+            <h2 class="text-xl font-medium">Line Items</h2>
+            <button class="inline-flex items-center gap-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-full px-6 py-2 shadow-sm transition-shadow duration-300 text-sm" data-action="add-item">
               <i data-lucide="plus" class="w-4 h-4"></i>Add Product
             </button>
           </div>
-          <div class="mt-3 space-y-3">
+          <div class="mt-6 space-y-4">
             ${STATE.items.map(itemRow).join('')}
           </div>
-          <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3 text-sm">
-            <div class="rounded-lg bg-black/20 px-3 py-2"><span class="text-slate-300">Total Platform Fees</span><div class="font-semibold">${money(m.totals.platform)}</div></div>
-            <div class="rounded-lg bg-black/20 px-3 py-2"><span class="text-slate-300">Total Support</span><div class="font-semibold">${money(m.totals.support)}</div></div>
-            <div class="rounded-lg bg-black/20 px-3 py-2"><span class="text-slate-300">Total Endpoints</span><div class="font-semibold">${m.totals.endpoints.toLocaleString()}</div></div>
+          <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3 text-sm">
+            <div class="rounded-lg bg-gray-50 px-4 py-3"><span class="text-gray-500">Total Platform Fees</span><div class="font-semibold text-gray-900 mt-1">${money(m.totals.platform)}</div></div>
+            <div class="rounded-lg bg-gray-50 px-4 py-3"><span class="text-gray-500">Total Support</span><div class="font-semibold text-gray-900 mt-1">${money(m.totals.support)}</div></div>
+            <div class="rounded-lg bg-gray-50 px-4 py-3"><span class="text-gray-500">Total Endpoints</span><div class="font-semibold text-gray-900 mt-1">${m.totals.endpoints.toLocaleString()}</div></div>
           </div>
         </div>
       `;
     }
-
     function itemRow(item){
       const meta = PRODUCTS[item.productKey] || PRODUCTS.rct;
       return `
-        <div class="rounded-xl border border-white/10 bg-[#0b1328] p-3" data-item="${item.id}">
-          <div class="grid grid-cols-1 sm:grid-cols-6 gap-2 items-end">
+        <div class="rounded-xl border border-gray-200 bg-white p-4" data-item="${item.id}">
+          <div class="grid grid-cols-1 sm:grid-cols-6 gap-4 items-end">
             <label class="flex flex-col gap-1 text-sm sm:col-span-2">
-              <span class="text-[12px] text-slate-300">Product</span>
-              <select class="rounded-lg border border-white/10 bg-[#0b1328] px-3 py-2 text-sm" data-action="change-product" aria-label="Product">
+              <span class="text-gray-500">Product</span>
+              <select class="mt-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-[#2563eb] focus:ring-[#2563eb]" data-action="change-product" aria-label="Product">
                 ${Object.entries(PRODUCTS).map(([k,v])=>`<option value="${k}" ${item.productKey===k?'selected':''}>${v.name}</option>`).join('')}
               </select>
             </label>
             <label class="flex flex-col gap-1 text-sm sm:col-span-2">
-              <span class="text-[12px] text-slate-300">Endpoint count</span>
-              <input class="rounded-lg border border-white/10 bg-[#0b1328] px-3 py-2 text-sm"
+              <span class="text-gray-500">Endpoint count</span>
+              <input class="mt-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-[#2563eb] focus:ring-[#2563eb]"
                      type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off" spellcheck="false"
                      value="${item.endpointsText}" data-action="edit-endpoints" aria-label="Endpoint count">
-              <span class="text-[11px] text-slate-400">${meta.name}</span>
+              <span class="text-xs text-gray-400 mt-1">${meta.name}</span>
             </label>
             <label class="flex items-center gap-2 text-sm sm:col-span-1">
-              <input type="checkbox" ${item.addSupport?'checked':''} class="h-4 w-4 rounded border-white/20 bg-[#0b1328]" data-action="toggle-support" aria-label="Add premium support">
+              <input type="checkbox" ${item.addSupport?'checked':''} class="h-4 w-4 rounded border-gray-300 text-[#2563eb] focus:ring-[#2563eb]" data-action="toggle-support" aria-label="Add premium support">
               <span>Premium Support</span>
             </label>
             <div class="sm:col-span-1 flex justify-start sm:justify-end">
-              <button class="inline-flex items-center gap-2 text-sm rounded-full border border-white/15 bg-white/10 px-3 py-1.5 hover:bg-white/20" data-action="remove-item" ${STATE.items.length===1?'disabled':''} aria-disabled="${STATE.items.length===1}">
+              <button class="inline-flex items-center gap-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-full px-4 py-2 shadow-sm transition-shadow duration-300 ${STATE.items.length===1?'opacity-50 cursor-not-allowed':''}" data-action="remove-item" ${STATE.items.length===1?'disabled aria-disabled="true"':''}>
                 <i data-lucide="trash-2" class="w-4 h-4"></i><span>Remove</span>
               </button>
             </div>
@@ -236,187 +224,180 @@
         </div>
       `;
     }
-
     function kpiCard(label,value,icon){
       return `
-        <div class="rounded-2xl border border-white/10 bg-[#0c142b] p-4" role="region" aria-live="polite">
+        <div class="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition-shadow duration-300" role="region" aria-live="polite">
           <div class="flex items-center justify-between">
             <div>
-              <div class="text-[12px] text-slate-300">${label}</div>
-              <div class="text-xl font-semibold font-mono">${value}</div>
+              <div class="text-sm text-gray-500">${label}</div>
+              <div class="text-2xl font-semibold font-mono mt-1">${value}</div>
             </div>
-            <i data-lucide="${icon}" class="w-5 h-5 text-sky-300" aria-hidden="true"></i>
+            <i data-lucide="${icon}" class="w-6 h-6 text-[#2563eb]" aria-hidden="true"></i>
           </div>
         </div>
       `;
     }
-
     function renderCustomer(m){
       return `
-        <section id="panel-customer" role="tabpanel" aria-labelledby="tab-customer" class="mt-2 space-y-3">
-          <div class="rounded-2xl border border-white/10 bg-[#0c142b] p-4">
-            <h3 class="text-base font-semibold">Customer Quote</h3>
-            <div class="mt-3 overflow-x-auto rounded-lg border border-white/10">
-              <table class="min-w-full text-sm">
-                <thead class="bg-[#0b152f] text-slate-300">
+        <section id="panel-customer" role="tabpanel" aria-labelledby="tab-customer" class="space-y-6">
+          <div class="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
+            <h3 class="text-xl font-medium">Customer Quote</h3>
+            <div class="mt-4 overflow-x-auto rounded-lg border border-gray-200">
+              <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50 text-gray-500">
                   <tr>
-                    <th class="px-3 py-2 text-left">Product</th>
-                    <th class="px-3 py-2 text-left">Endpoints</th>
-                    <th class="px-3 py-2 text-left">Base ARR</th>
-                    <th class="px-3 py-2 text-left">Platform Fee</th>
-                    <th class="px-3 py-2 text-left">Premium Support</th>
-                    <th class="px-3 py-2 text-left">Line Total (MSRP)</th>
+                    <th class="px-4 py-3 text-left font-medium">Product</th>
+                    <th class="px-4 py-3 text-left font-medium">Endpoints</th>
+                    <th class="px-4 py-3 text-left font-medium">Base ARR</th>
+                    <th class="px-4 py-3 text-left font-medium">Platform Fee</th>
+                    <th class="px-4 py-3 text-left font-medium">Premium Support</th>
+                    <th class="px-4 py-3 text-left font-medium">Line Total (MSRP)</th>
                   </tr>
                 </thead>
-                <tbody class="bg-[#0b1328]">
+                <tbody class="bg-white divide-y divide-gray-200">
                   ${m.items.map(it => `
                     <tr>
-                      <td class="px-3 py-2">${it.productName}</td>
-                      <td class="px-3 py-2">${it.endpoints.toLocaleString()}</td>
-                      <td class="px-3 py-2 font-mono">${money(it.baseARR)}</td>
-                      <td class="px-3 py-2">${it.platformWaived ? '— (waived)' : `<span class="font-mono">${money(it.platformFeeApplied)}</span>`}</td>
-                      <td class="px-3 py-2">${it.addSupport ? `<span class="font-mono">${money(it.support)}</span>` : '—'}</td>
-                      <td class="px-3 py-2 font-mono">${money(it.totalARR)}</td>
+                      <td class="px-4 py-3 text-gray-900">${it.productName}</td>
+                      <td class="px-4 py-3 text-gray-900">${it.endpoints.toLocaleString()}</td>
+                      <td class="px-4 py-3 font-mono text-gray-900">${money(it.baseARR)}</td>
+                      <td class="px-4 py-3 text-gray-900">${it.platformWaived ? '— (waived)' : `<span class="font-mono">${money(it.platformFeeApplied)}</span>`}</td>
+                      <td class="px-4 py-3 text-gray-900">${it.addSupport ? `<span class="font-mono">${money(it.support)}</span>` : '—'}</td>
+                      <td class="px-4 py-3 font-mono text-gray-900">${money(it.totalARR)}</td>
                     </tr>
                   `).join('')}
                 </tbody>
-                <tfoot class="bg-[#0b152f]">
+                <tfoot class="bg-gray-50">
                   <tr>
-                    <th class="px-3 py-2 text-right" colspan="2">Totals</th>
-                    <th class="px-3 py-2 text-left font-mono">${money(m.totals.baseARR)}</th>
-                    <th class="px-3 py-2 text-left font-mono">${money(m.totals.platform)}</th>
-                    <th class="px-3 py-2 text-left font-mono">${money(m.totals.support)}</th>
-                    <th class="px-3 py-2 text-left font-mono">${money(m.totals.msrp)}</th>
+                    <th class="px-4 py-3 text-right font-medium" colspan="2">Totals</th>
+                    <th class="px-4 py-3 text-left font-mono text-gray-900">${money(m.totals.baseARR)}</th>
+                    <th class="px-4 py-3 text-left font-mono text-gray-900">${money(m.totals.platform)}</th>
+                    <th class="px-4 py-3 text-left font-mono text-gray-900">${money(m.totals.support)}</th>
+                    <th class="px-4 py-3 text-left font-mono text-gray-900">${money(m.totals.msrp)}</th>
                   </tr>
                 </tfoot>
               </table>
             </div>
-
-            <button type="button" class="mt-3 inline-flex items-center gap-2 text-sm rounded-full border border-white/15 bg-white/10 px-3 py-1.5 hover:bg-white/20" data-action="toggle-breakdown" aria-expanded="${STATE.showBreakdown}">
+            <button type="button" class="mt-4 inline-flex items-center gap-2 text-sm bg-[#2563eb] hover:bg-blue-700 text-white rounded-full px-4 py-2 shadow-sm transition-shadow duration-300" data-action="toggle-breakdown" aria-expanded="${STATE.showBreakdown}">
               <i data-lucide="${STATE.showBreakdown?'chevron-up':'chevron-down'}" class="w-4 h-4"></i>
               ${STATE.showBreakdown ? 'Hide tier calculation' : 'Show tier calculation'}
             </button>
-            <div id="breakdown" class="${STATE.showBreakdown ? 'mt-3' : 'hidden'}">
+            <div id="breakdown" class="${STATE.showBreakdown ? 'mt-4 space-y-4' : 'hidden'}">
               ${m.items.map(it => tierTable(it)).join('')}
             </div>
           </div>
         </section>
       `;
     }
-
     function tierTable(it){
       return `
-        <div class="mb-3 overflow-x-auto rounded-lg border border-white/10">
-          <table class="min-w-full text-sm">
-            <caption class="text-left px-3 py-2 bg-[#0b152f] font-semibold">${it.productName} — ${it.endpoints.toLocaleString()} endpoints</caption>
-            <thead class="bg-[#0b152f] text-slate-300">
-              <tr><th class="px-3 py-2 text-left">Band</th><th class="px-3 py-2 text-left">Units</th><th class="px-3 py-2 text-left">$ / Unit</th><th class="px-3 py-2 text-left">Extended</th></tr>
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+          <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <caption class="text-left px-4 py-3 bg-gray-50 font-medium text-gray-900">${it.productName} — ${it.endpoints.toLocaleString()} endpoints</caption>
+            <thead class="bg-gray-50 text-gray-500">
+              <tr><th class="px-4 py-3 text-left font-medium">Band</th><th class="px-4 py-3 text-left font-medium">Units</th><th class="px-4 py-3 text-left font-medium">$ / Unit</th><th class="px-4 py-3 text-left font-medium">Extended</th></tr>
             </thead>
-            <tbody class="bg-[#0b1328]">
+            <tbody class="bg-white divide-y divide-gray-200">
               ${it.lines.map(r=>`
                 <tr>
-                  <td class="px-3 py-2">${r.band}</td>
-                  <td class="px-3 py-2">${r.units.toLocaleString()}</td>
-                  <td class="px-3 py-2 font-mono">${money(r.rate)}</td>
-                  <td class="px-3 py-2 font-mono">${money(r.extended)}</td>
+                  <td class="px-4 py-3 text-gray-900">${r.band}</td>
+                  <td class="px-4 py-3 text-gray-900">${r.units.toLocaleString()}</td>
+                  <td class="px-4 py-3 font-mono text-gray-900">${money(r.rate)}</td>
+                  <td class="px-4 py-3 font-mono text-gray-900">${money(r.extended)}</td>
                 </tr>
               `).join('')}
             </tbody>
-            <tfoot class="bg-[#0b152f]">
-              <tr><th class="px-3 py-2 text-right" colspan="3">Base ARR Subtotal</th><th class="px-3 py-2 text-left font-mono">${money(it.baseARR)}</th></tr>
+            <tfoot class="bg-gray-50">
+              <tr><th class="px-4 py-3 text-right font-medium" colspan="3">Base ARR Subtotal</th><th class="px-4 py-3 text-left font-mono text-gray-900">${money(it.baseARR)}</th></tr>
             </tfoot>
           </table>
         </div>
       `;
     }
-
     function renderPartner(m){
       return `
-        <section id="panel-partner" role="tabpanel" aria-labelledby="tab-partner" class="space-y-3">
-          <div class="rounded-2xl border border-white/10 bg-[#0c142b] p-4">
-            <h3 class="text-base font-semibold">Partner Quote (Per Line Item)</h3>
-            <div class="mt-3 overflow-x-auto rounded-lg border border-white/10">
-              <table class="min-w-full text-sm">
-                <thead class="bg-[#0b152f] text-slate-300">
+        <section id="panel-partner" role="tabpanel" aria-labelledby="tab-partner" class="space-y-6">
+          <div class="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
+            <h3 class="text-xl font-medium">Partner Quote (Per Line Item)</h3>
+            <div class="mt-4 overflow-x-auto rounded-lg border border-gray-200">
+              <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50 text-gray-500">
                   <tr>
-                    <th class="px-3 py-2 text-left">Product</th>
-                    <th class="px-3 py-2 text-left">Endpoints</th>
-                    <th class="px-3 py-2 text-left">MSRP (List)</th>
-                    <th class="px-3 py-2 text-left">Net New Margin %</th>
-                    <th class="px-3 py-2 text-left">Net New Margin $</th>
-                    <th class="px-3 py-2 text-left">Net New Partner Price</th>
-                    <th class="px-3 py-2 text-left">Renewal Margin %</th>
-                    <th class="px-3 py-2 text-left">Renewal Margin $</th>
-                    <th class="px-3 py-2 text-left">Renewal Partner Price</th>
+                    <th class="px-4 py-3 text-left font-medium">Product</th>
+                    <th class="px-4 py-3 text-left font-medium">Endpoints</th>
+                    <th class="px-4 py-3 text-left font-medium">MSRP (List)</th>
+                    <th class="px-4 py-3 text-left font-medium">Net New Margin %</th>
+                    <th class="px-4 py-3 text-left font-medium">Net New Margin $</th>
+                    <th class="px-4 py-3 text-left font-medium">Net New Partner Price</th>
+                    <th class="px-4 py-3 text-left font-medium">Renewal Margin %</th>
+                    <th class="px-4 py-3 text-left font-medium">Renewal Margin $</th>
+                    <th class="px-4 py-3 text-left font-medium">Renewal Partner Price</th>
                   </tr>
                 </thead>
-                <tbody class="bg-[#0b1328]">
+                <tbody class="bg-white divide-y divide-gray-200">
                   ${m.items.map(it => `
                     <tr>
-                      <td class="px-3 py-2">${it.productName}</td>
-                      <td class="px-3 py-2">${it.endpoints.toLocaleString()}</td>
-                      <td class="px-3 py-2 font-mono">${money(it.msrp)}</td>
-                      <td class="px-3 py-2">30%</td>
-                      <td class="px-3 py-2 font-mono">${money(it.marginNew$)}</td>
-                      <td class="px-3 py-2 font-mono">${money(it.partnerNewPrice)}</td>
-                      <td class="px-3 py-2">15%</td>
-                      <td class="px-3 py-2 font-mono">${money(it.marginRen$)}</td>
-                      <td class="px-3 py-2 font-mono">${money(it.partnerRenPrice)}</td>
+                      <td class="px-4 py-3 text-gray-900">${it.productName}</td>
+                      <td class="px-4 py-3 text-gray-900">${it.endpoints.toLocaleString()}</td>
+                      <td class="px-4 py-3 font-mono text-gray-900">${money(it.msrp)}</td>
+                      <td class="px-4 py-3 text-gray-900">30%</td>
+                      <td class="px-4 py-3 font-mono text-gray-900">${money(it.marginNew$)}</td>
+                      <td class="px-4 py-3 font-mono text-gray-900">${money(it.partnerNewPrice)}</td>
+                      <td class="px-4 py-3 text-gray-900">15%</td>
+                      <td class="px-4 py-3 font-mono text-gray-900">${money(it.marginRen$)}</td>
+                      <td class="px-4 py-3 font-mono text-gray-900">${money(it.partnerRenPrice)}</td>
                     </tr>
                   `).join('')}
                 </tbody>
-                <tfoot class="bg-[#0b152f]">
+                <tfoot class="bg-gray-50">
                   <tr>
-                    <th class="px-3 py-2 text-right" colspan="2">Totals</th>
-                    <th class="px-3 py-2 text-left font-mono">${money(m.totals.msrp)}</th>
-                    <th class="px-3 py-2 text-left">—</th>
-                    <th class="px-3 py-2 text-left font-mono">${money(m.totals.marginNew$)}</th>
-                    <th class="px-3 py-2 text-left font-mono">${money(m.totals.partnerNew)}</th>
-                    <th class="px-3 py-2 text-left">—</th>
-                    <th class="px-3 py-2 text-left font-mono">${money(m.totals.marginRen$)}</th>
-                    <th class="px-3 py-2 text-left font-mono">${money(m.totals.partnerRen)}</th>
+                    <th class="px-4 py-3 text-right font-medium" colspan="2">Totals</th>
+                    <th class="px-4 py-3 text-left font-mono text-gray-900">${money(m.totals.msrp)}</th>
+                    <th class="px-4 py-3 text-left text-gray-900">—</th>
+                    <th class="px-4 py-3 text-left font-mono text-gray-900">${money(m.totals.marginNew$)}</th>
+                    <th class="px-4 py-3 text-left font-mono text-gray-900">${money(m.totals.partnerNew)}</th>
+                    <th class="px-4 py-3 text-left text-gray-900">—</th>
+                    <th class="px-4 py-3 text-left font-mono text-gray-900">${money(m.totals.marginRen$)}</th>
+                    <th class="px-4 py-3 text-left font-mono text-gray-900">${money(m.totals.partnerRen)}</th>
                   </tr>
                 </tfoot>
               </table>
             </div>
-            <p class="mt-2 text-[12px] text-slate-400">MSRP includes platform fee (if not waived) and premium support (if selected) per line item. Partner prices reflect margins applied to each line.</p>
+            <p class="mt-2 text-sm text-gray-500">MSRP includes platform fee (if not waived) and premium support (if selected) per line item. Partner prices reflect margins applied to each line.</p>
           </div>
         </section>
       `;
     }
-
     function renderSLA(){
       return `
-        <section id="panel-sla" role="tabpanel" aria-labelledby="tab-sla" class="space-y-3">
-          <div class="rounded-2xl border border-white/10 bg-[#0c142b] p-4">
-            <h3 class="text-base font-semibold">Support SLA</h3>
-            <div class="mt-3 overflow-x-auto rounded-lg border border-white/10">
-              <table class="min-w-full text-sm">
-                <thead class="bg-[#0b152f] text-slate-300">
-                  <tr><th class="px-3 py-2 text-left">Support Level</th><th class="px-3 py-2 text-left">Basic</th><th class="px-3 py-2 text-left">Premium</th></tr>
+        <section id="panel-sla" role="tabpanel" aria-labelledby="tab-sla" class="space-y-6">
+          <div class="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
+            <h3 class="text-xl font-medium">Support SLA</h3>
+            <div class="mt-4 overflow-x-auto rounded-lg border border-gray-200">
+              <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50 text-gray-500">
+                  <tr><th class="px-4 py-3 text-left font-medium">Support Level</th><th class="px-4 py-3 text-left font-medium">Basic</th><th class="px-4 py-3 text-left font-medium">Premium</th></tr>
                 </thead>
-                <tbody class="bg-[#0b1328]">
-                  <tr><td class="px-3 py-2">Urgent Severity</td><td class="px-3 py-2">First response: <strong>1 Business Day</strong></td><td class="px-3 py-2">First & update: <strong>2 Business Hours</strong></td></tr>
-                  <tr><td class="px-3 py-2">Normal Severity</td><td class="px-3 py-2">First response: <strong>2 Business Days</strong></td><td class="px-3 py-2">First & update: <strong>4 Business Hours</strong></td></tr>
-                  <tr><td class="px-3 py-2">Low Severity</td><td class="px-3 py-2">First response: <strong>3 Business Days</strong></td><td class="px-3 py-2">First & update: <strong>8 Business Hours</strong></td></tr>
-                  <tr><td class="px-3 py-2">Availability</td><td class="px-3 py-2" colspan="2">8am – 5pm CT/CET</td></tr>
-                  <tr><td class="px-3 py-2">Support Hours</td><td class="px-3 py-2" colspan="2">Unlimited</td></tr>
-                  <tr><td class="px-3 py-2">Dedicated CSM</td><td class="px-3 py-2">✔</td><td class="px-3 py-2">✔</td></tr>
-                  <tr><td class="px-3 py-2">Support Call Scheduling</td><td class="px-3 py-2">Based on availability</td><td class="px-3 py-2">Urgent within 2 business days; Normal within 4; Low based on availability</td></tr>
-                  <tr><td class="px-3 py-2">Environment Audit</td><td class="px-3 py-2">—</td><td class="px-3 py-2">1× / year</td></tr>
-                  <tr><td class="px-3 py-2">Configuration Audit</td><td class="px-3 py-2">—</td><td class="px-3 py-2">1× / year</td></tr>
-                  <tr><td class="px-3 py-2">Upgrade Assistance</td><td class="px-3 py-2">—</td><td class="px-3 py-2">2× / year</td></tr>
-                  <tr><td class="px-3 py-2">User Group Membership</td><td class="px-3 py-2">Based on availability</td><td class="px-3 py-2">Priority recruitment</td></tr>
-                  <tr><td class="px-3 py-2">Pricing</td><td class="px-3 py-2">Included with Enterprise License</td><td class="px-3 py-2">+20% of total ARR (minimum $6,000)</td></tr>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr><td class="px-4 py-3 text-gray-900">Urgent Severity</td><td class="px-4 py-3 text-gray-900">First response: <strong>1 Business Day</strong></td><td class="px-4 py-3 text-gray-900">First & update: <strong>2 Business Hours</strong></td></tr>
+                  <tr><td class="px-4 py-3 text-gray-900">Normal Severity</td><td class="px-4 py-3 text-gray-900">First response: <strong>2 Business Days</strong></td><td class="px-4 py-3 text-gray-900">First & update: <strong>4 Business Hours</strong></td></tr>
+                  <tr><td class="px-4 py-3 text-gray-900">Low Severity</td><td class="px-4 py-3 text-gray-900">First response: <strong>3 Business Days</strong></td><td class="px-4 py-3 text-gray-900">First & update: <strong>8 Business Hours</strong></td></tr>
+                  <tr><td class="px-4 py-3 text-gray-900">Availability</td><td class="px-4 py-3 text-gray-900" colspan="2">8am – 5pm CT/CET</td></tr>
+                  <tr><td class="px-4 py-3 text-gray-900">Support Hours</td><td class="px-4 py-3 text-gray-900" colspan="2">Unlimited</td></tr>
+                  <tr><td class="px-4 py-3 text-gray-900">Dedicated CSM</td><td class="px-4 py-3 text-gray-900">✔</td><td class="px-4 py-3 text-gray-900">✔</td></tr>
+                  <tr><td class="px-4 py-3 text-gray-900">Support Call Scheduling</td><td class="px-4 py-3 text-gray-900">Based on availability</td><td class="px-4 py-3 text-gray-900">Urgent within 2 business days; Normal within 4; Low based on availability</td></tr>
+                  <tr><td class="px-4 py-3 text-gray-900">Environment Audit</td><td class="px-4 py-3 text-gray-900">—</td><td class="px-4 py-3 text-gray-900">1× / year</td></tr>
+                  <tr><td class="px-4 py-3 text-gray-900">Configuration Audit</td><td class="px-4 py-3 text-gray-900">—</td><td class="px-4 py-3 text-gray-900">1× / year</td></tr>
+                  <tr><td class="px-4 py-3 text-gray-900">Upgrade Assistance</td><td class="px-4 py-3 text-gray-900">—</td><td class="px-4 py-3 text-gray-900">2× / year</td></tr>
+                  <tr><td class="px-4 py-3 text-gray-900">User Group Membership</td><td class="px-4 py-3 text-gray-900">Based on availability</td><td class="px-4 py-3 text-gray-900">Priority recruitment</td></tr>
+                  <tr><td class="px-4 py-3 text-gray-900">Pricing</td><td class="px-4 py-3 text-gray-900">Included with Enterprise License</td><td class="px-4 py-3 text-gray-900">+20% of total ARR (minimum $6,000)</td></tr>
                 </tbody>
               </table>
             </div>
-            <p class="mt-2 text-[12px] text-slate-400">Note: Response-time commitments do not guarantee time to resolution.</p>
+            <p class="mt-2 text-sm text-gray-500">Note: Response-time commitments do not guarantee time to resolution.</p>
           </div>
         </section>
       `;
     }
-
     /* =======================
        EMAIL COPY (multi-item)
     ======================= */
@@ -448,11 +429,11 @@
         `Total ARR (MSRP): ${money(m.totals.msrp)}`,
         '',
         'Below is a breakdown of pricing with MSRP, partner margin, and partner price:',
-        '| Type       | MSRP (List) | Margin % | Margin $  | Partner Price |',
+        '| Type | MSRP (List) | Margin % | Margin $ | Partner Price |',
         '|------------|-------------|----------|-----------|---------------|',
-        `| Net New    | ${money(m.totals.msrp)}  | 30%      | ${money(m.totals.marginNew$)}| ${money(m.totals.partnerNew)}    |`,
-        `| Renewal    | ${money(m.totals.msrp)}  | 15%      | ${money(m.totals.marginRen$)}| ${money(m.totals.partnerRen)}    |`,
-        `| **Total**  | ${money(m.totals.msrp)}  | –        | –         | –             |`,
+        `| Net New | ${money(m.totals.msrp)} | 30% | ${money(m.totals.marginNew$)}| ${money(m.totals.partnerNew)} |`,
+        `| Renewal | ${money(m.totals.msrp)} | 15% | ${money(m.totals.marginRen$)}| ${money(m.totals.partnerRen)} |`,
+        `| **Total** | ${money(m.totals.msrp)} | – | – | – |`,
         '',
         'Please note this is an estimate only and should not be considered a formal quote.',
         'Let me know if you’d like me to prepare a formal proposal or discuss package options.',
@@ -461,13 +442,11 @@
       );
       return lines.join('\n');
     }
-
     /* =======================
        EVENTS
     ======================= */
     function attachEvents(){
       const root = document.getElementById('app');
-
       // Add item
       const addBtn = root.querySelector('[data-action="add-item"]');
       if(addBtn){
@@ -476,21 +455,17 @@
           render();
         });
       }
-
       // Delegate events per item
       root.querySelectorAll('[data-item]').forEach(container => {
         const id = container.getAttribute('data-item');
         const item = STATE.items.find(x=>x.id===id);
         if(!item) return;
-
         // Product change
         const sel = container.querySelector('[data-action="change-product"]');
         if(sel) sel.addEventListener('change', e => { item.productKey = e.target.value; render(); });
-
         // Support toggle
         const sup = container.querySelector('[data-action="toggle-support"]');
         if(sup) sup.addEventListener('change', e => { item.addSupport = !!e.target.checked; render(); });
-
         // Endpoints input
         const ep = container.querySelector('[data-action="edit-endpoints"]');
         if(ep){
@@ -506,7 +481,6 @@
           ep.addEventListener('keydown', e => { if(e.key==='Enter'){ e.currentTarget.blur(); } });
           ep.addEventListener('wheel', e => { e.preventDefault(); }, { passive: false });
         }
-
         // Remove item
         const rm = container.querySelector('[data-action="remove-item"]');
         if(rm) rm.addEventListener('click', () => {
@@ -515,13 +489,14 @@
           render();
         });
       });
-
       // Tab switching
       root.querySelectorAll('[data-action="switch"]').forEach(b => b.addEventListener('click', e => {
         STATE.activeTab = e.currentTarget.getAttribute('data-tab');
         render();
       }));
-
+      // Mobile tab switch
+      const mobileSel = root.querySelector('[data-action="switch-mobile"]');
+      if(mobileSel) mobileSel.addEventListener('change', e => { STATE.activeTab = e.target.value; render(); });
       // Copy email
       const copyBtn = root.querySelector('[data-action="copy"]');
       if(copyBtn) copyBtn.addEventListener('click', async () => {
@@ -538,22 +513,19 @@
         }
         STATE.copied = true; render(); setTimeout(()=>{ STATE.copied = false; render(); }, 1200);
       });
-
       // Show/Hide tier breakdown
       const toggle = root.querySelector('[data-action="toggle-breakdown"]');
       if(toggle) toggle.addEventListener('click', () => { STATE.showBreakdown = !STATE.showBreakdown; render(); });
     }
-
     function updateBreakdownTable(){ /* populated during render via tierTable per item */ }
-
     /* =======================
        INIT
     ======================= */
     document.addEventListener('DOMContentLoaded', () => {
       render();
       if(!window.tailwind){
-        const b=document.createElement('div'); b.role='alert'; b.className='mx-auto max-w-6xl px-4 mt-3';
-        b.innerHTML='<div class="rounded-lg bg-amber-500/10 border border-amber-400/30 text-amber-200 px-3 py-2 text-sm">Styles failed to load. The calculator still works, but appearance may differ.</div>';
+        const b=document.createElement('div'); b.role='alert'; b.className='mx-auto max-w-6xl px-6 lg:px-12 mt-3';
+        b.innerHTML='<div class="rounded-lg bg-amber-500/10 border border-amber-400/30 text-amber-900 px-4 py-3 text-sm">Styles failed to load. The calculator still works, but appearance may differ.</div>';
         document.body.prepend(b);
       }
     });
